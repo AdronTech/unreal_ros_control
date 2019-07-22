@@ -150,6 +150,11 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
 
+add_executable(client_node src/client.c)
+target_link_libraries(client_node
+  ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############

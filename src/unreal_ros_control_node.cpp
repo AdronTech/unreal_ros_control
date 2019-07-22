@@ -1,14 +1,16 @@
 #include "ros/ros.h"
-
 #include "controller_manager/controller_manager.h"
 
 #include <string>
 #include "unreal_hw_sim.h"
 
-unreal_ros_control::UnrealHWSim HWInterface;
+#include <signal.h>
+#include <atomic>
 
 int main(int argc, char **argv)
 {
+    unreal_ros_control::UnrealHWSim HWInterface;
+
     ros::init(argc, argv, "unreal_ros_control_node");
     ros::NodeHandle nh;
 
@@ -26,7 +28,7 @@ int main(int argc, char **argv)
 
     ros::Time ts = ros::Time::now();
 
-    ros::Rate rate(2);
+    ros::Rate rate(20);
     while (ros::ok())
     {
         ros::Duration d = ros::Time::now() - ts;
@@ -36,11 +38,10 @@ int main(int argc, char **argv)
         cm.update(ts, d);
         HWInterface.writeSim();
 
-        ROS_INFO("Test");
-
-        // ros::spinOnce();
+        ros::spinOnce();
         rate.sleep();
     }
+    HWInterface.Destroy();
 
     spinner.stop();
 
