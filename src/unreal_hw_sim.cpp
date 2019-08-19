@@ -1,5 +1,6 @@
 #include "unreal_hw_sim.h"
 #include <chrono>
+#include "neolib/hexdump.hpp"
 
 bool unreal_ros_control::UnrealHWSim::read(char *buffer, uint32_t length)
 {
@@ -63,42 +64,42 @@ void unreal_ros_control::UnrealHWSim::socket_function()
 
         while (running.load())
         {
-            if (!read(buffer, 2))
+            if (!read(readbuffer, 2))
                 break;
 
-            nrJoints = ntohs(*(uint16_t *)&buffer);
+            nrJoints = ntohs(*(uint16_t *)&readbuffer);
 
             for (uint16_t i = 0; i < nrJoints; i++)
             {
                 // read name length
-                if (!read(buffer, 2))
+                if (!read(readbuffer, 2))
                     break;
-                nameLength = ntohs(*(uint16_t *)&buffer);
+                nameLength = ntohs(*(uint16_t *)&readbuffer);
 
                 // read name
-                if (!read(buffer, nameLength))
+                if (!read(readbuffer, nameLength))
                     break;
                 // TODO: save Name
-                printf("\t\t\tName: %s", buffer);
+                // printf("\t\t\tName: %s", readbuffer);
 
                 // read pos
-                if (!read(buffer, 4))
+                if (!read(readbuffer, 8))
                     break;
 
                 // TODO: save pos
-                uint64_t temp = ntohll(*(uint64_t *)buffer);
+                uint64_t temp = ntohll(*(uint64_t *)readbuffer);
                 double value = *(double *)&temp;
-                printf("\tPos: %f\n", value);
+                // printf("\tPos: %f\n", value);
                 pos = value;
 
                 // read vel
-                if (!read(buffer, 4))
+                if (!read(readbuffer, 8))
                     break;
 
                 // TODO: save vel
 
                 // read eff
-                if (!read(buffer, 4))
+                if (!read(readbuffer, 8))
                     break;
 
                 // TODO: save eff
@@ -141,10 +142,28 @@ void unreal_ros_control::UnrealHWSim::readSim()
 void unreal_ros_control::UnrealHWSim::writeSim()
 {
     if(connected.load()){
-        uint64_t tmp = htonll(*(uint64_t *)&cmd);
-        *(uint64_t *)buffer = tmp;
 
-        ::send(new_socket, buffer, 8, 0);
+        char *pointer = sendbuffer;
+
+        *(uint16_t *)pointer = htons(2);
+        pointer += 2;
+
+        char text[100] = "joint1";
+
+        *(uint16_t *)pointer = htons(strlen(text) + 1);
+        pointer += 2;
+
+        strcpy(pointer, text);
+        pointer += strlen(text) + 1;
+
+
+        uint64_t temp = htonll(*(uint64_t *)&cmd);
+        *(uint64_t *)pointer = temp;
+        pointer += 8;
+
+        // neolib::hex_dump(sendbuffer, pointer - sendbuffer, std::cout);
+
+        send(new_socket, sendbuffer, pointer - sendbuffer, 0);
 
         printf("cmd: %f\n", cmd);    
     }

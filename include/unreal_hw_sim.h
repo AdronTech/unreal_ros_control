@@ -40,13 +40,14 @@ private:
     hardware_interface::JointStateInterface jnt_state_interface;
     hardware_interface::PositionJointInterface jnt_pos_interface;
 
-    double cmd;
-    double pos;
-    double vel;
-    double eff;
+    double cmd = 0;
+    double pos = 0;
+    double vel = 0;
+    double eff = 0;
 
     int server_fd, new_socket, valread;
-    char buffer[1024] = {0};
+    char readbuffer[1024] = {0};
+    char sendbuffer[1024] = {0};
 
     std::thread socketThread;
 
