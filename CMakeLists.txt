@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
 roscpp
 hardware_interface
 controller_manager
+transmission_interface
 )
 
 ## System dependencies are found with CMake's conventions

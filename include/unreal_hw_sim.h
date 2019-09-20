@@ -17,6 +17,8 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <thread>
+#include <vector>
+#include <map>
 
 #if __BIG_ENDIAN__
 #define htonll(x) (x)
@@ -28,6 +30,15 @@
 
 #define PORT 8080
 
+typedef struct
+{
+    double position;
+    double velocity;
+    double effort;
+    double command;
+} JointInfo;
+
+
 namespace unreal_ros_control
 {
 
@@ -37,9 +48,14 @@ private:
     std::atomic<bool> running{true};
     std::atomic<bool> connected{false};
 
+    hardware_interface::JointStateInterface js_interface_;
+    hardware_interface::PositionJointInterface pj_interface_;
+    hardware_interface::VelocityJointInterface vj_interface_;
+
+    std::map<std::string, JointInfo> joint_information_;
+
     hardware_interface::JointStateInterface jnt_state_interface;
     hardware_interface::PositionJointInterface jnt_pos_interface;
-
     double cmd = 0;
     double pos = 0;
     double vel = 0;
@@ -56,7 +72,7 @@ private:
     bool read(char *buffer, uint32_t length);
 
 public:
-    UnrealHWSim();
+    UnrealHWSim(std::vector<transmission_interface::TransmissionInfo> transmissions);
     void Destroy();
 
     void readSim();
